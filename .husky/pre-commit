@@ -1,1 +1,17 @@
+echo "🔍 Running pre-commit checks..."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "📝 Linting and formatting staged files..."
+
 npx lint-staged
+
+if [ $? -eq 0 ]; then
+  echo ""
+  echo "✅ Pre-commit checks passed!"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+else
+  echo ""
+  echo "❌ Pre-commit checks failed!"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  exit 1
+fi

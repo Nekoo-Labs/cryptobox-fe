@@ -18,15 +18,26 @@ npm run prepare
 
 ### Pre-commit (on `git commit`)
 
-- **ESLint**: Automatically fixes linting issues on staged files
-- **Prettier**: Formats staged files
-- Only runs on files you're committing (fast!)
+Runs quickly on only staged files:
+
+- **📝 Lint-staged**: Runs ESLint and Prettier on staged files
+  - Automatically fixes linting issues
+  - Formats code according to Prettier rules
+  - Only checks files you're committing (fast!)
+
+**Output**: Verbose feedback showing which files are being processed
 
 ### Pre-push (on `git push`)
 
-- **TypeScript**: Type-checks entire codebase
-- **ESLint**: Lints entire codebase
-- Ensures no type errors or lint issues make it to remote
+Runs comprehensive checks on entire codebase in 3 steps:
+
+- **🔍 Step 1/3 - Type Check**: Validates TypeScript types across the project
+- **🔍 Step 2/3 - Lint**: Runs ESLint on entire codebase
+- **🔍 Step 3/3 - Build**: Ensures the project builds successfully
+
+**Output**: Detailed step-by-step progress with clear success/failure messages
+
+⚠️ **Note**: Pre-push can take 30-60 seconds as it builds the entire project
 
 ## Manual Commands
 
