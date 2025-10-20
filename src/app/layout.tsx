@@ -3,7 +3,7 @@ import { Audiowide } from "next/font/google";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Navbar } from "@/components/navbar";
+import { Navbar, Footer } from "@/components";
 
 const audiowide = Audiowide({
   variable: "--font-audiowide",
@@ -24,10 +24,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${audiowide.variable} antialiased`}>
+      <body
+        className={`${audiowide.variable} antialiased flex flex-col min-h-screen`}
+      >
         <Providers>
           <Navbar />
           {children}
+          <Footer />
         </Providers>
       </body>
     </html>
