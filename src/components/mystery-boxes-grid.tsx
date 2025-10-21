@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { CaseOpeningModal } from "./case-opening-modal";
 
 const mysteryBoxes = [
   {
@@ -70,108 +71,125 @@ const boxVariants = {
 
 export function MysteryBoxesGrid() {
   const [selectedBox, setSelectedBox] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBoxData, setSelectedBoxData] = useState<
+    (typeof mysteryBoxes)[0] | null
+  >(null);
+
+  const handleOpenBox = (box: (typeof mysteryBoxes)[0]) => {
+    setSelectedBoxData(box);
+    setIsModalOpen(true);
+  };
 
   return (
-    <motion.div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {mysteryBoxes.map((box) => (
-        <motion.div
-          key={box.id}
-          variants={boxVariants}
-          whileHover={{ y: -10, scale: 1.02 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          onClick={() => setSelectedBox(box.id)}
-          className="cursor-pointer"
-        >
-          <div
-            className={`relative group bg-gradient-to-b from-[#1a1f3a]/80 to-[#0f1729]/80 backdrop-blur-sm rounded-2xl p-6 border-2 ${box.borderColor} ${box.hoverBorder} transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden ${
-              selectedBox === box.id ? "ring-2 ring-cyan-400" : ""
-            }`}
+    <>
+      <CaseOpeningModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        boxName={selectedBoxData?.name || ""}
+      />
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {mysteryBoxes.map((box) => (
+          <motion.div
+            key={box.id}
+            variants={boxVariants}
+            whileHover={{ y: -10, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            onClick={() => setSelectedBox(box.id)}
+            className="cursor-pointer"
           >
-            {/* Selected indicator */}
-            {selectedBox === box.id && (
-              <motion.div
-                className="absolute top-4 right-4 w-6 h-6 bg-cyan-400 rounded-full flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500 }}
-              >
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div
+              className={`relative group bg-gradient-to-b from-[#1a1f3a]/80 to-[#0f1729]/80 backdrop-blur-sm rounded-2xl p-6 border-2 ${box.borderColor} ${box.hoverBorder} transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden ${
+                selectedBox === box.id ? "ring-2 ring-cyan-400" : ""
+              }`}
+            >
+              {/* Selected indicator */}
+              {selectedBox === box.id && (
+                <motion.div
+                  className="absolute top-4 right-4 w-6 h-6 bg-cyan-400 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500 }}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </motion.div>
-            )}
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </motion.div>
+              )}
 
-            {/* Box Image */}
-            <div className="relative aspect-square mb-6 rounded-xl overflow-hidden">
-              {/* Glow effect */}
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-t ${box.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                initial={false}
-              />
-
-              <div className="relative w-full h-full flex items-center justify-center p-4">
-                <Image
-                  src={box.image}
-                  alt={box.name}
-                  fill
-                  className="object-contain drop-shadow-2xl"
+              {/* Box Image */}
+              <div className="relative aspect-square mb-6 rounded-xl overflow-hidden">
+                {/* Glow effect */}
+                <motion.div
+                  className={`absolute inset-0 bg-gradient-to-t ${box.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                  initial={false}
                 />
+
+                <div className="relative w-full h-full flex items-center justify-center p-4">
+                  <Image
+                    src={box.image}
+                    alt={box.name}
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                  />
+                </div>
               </div>
+
+              {/* Box Info */}
+              <div className="text-center">
+                <h3 className="text-lg sm:text-xl font-audiowide text-white mb-3">
+                  {box.name}
+                </h3>
+                <p className="text-2xl sm:text-3xl font-audiowide bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent mb-4">
+                  {box.price}
+                </p>
+
+                {/* Open Box Button */}
+                <motion.button
+                  onClick={() => handleOpenBox(box)}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-cyan-500/30"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Open Box
+                </motion.button>
+              </div>
+
+              {/* Shine effect */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, transparent 0%, rgba(34, 211, 238, 0.1) 50%, transparent 100%)",
+                }}
+                animate={{
+                  x: ["-100%", "100%"],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatDelay: 2,
+                }}
+              />
             </div>
-
-            {/* Box Info */}
-            <div className="text-center">
-              <h3 className="text-lg sm:text-xl font-audiowide text-white mb-3">
-                {box.name}
-              </h3>
-              <p className="text-2xl sm:text-3xl font-audiowide bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent mb-4">
-                {box.price}
-              </p>
-
-              {/* Open Box Button */}
-              <motion.button
-                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-cyan-500/30"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Open Box
-              </motion.button>
-            </div>
-
-            {/* Shine effect */}
-            <motion.div
-              className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(135deg, transparent 0%, rgba(34, 211, 238, 0.1) 50%, transparent 100%)",
-              }}
-              animate={{
-                x: ["-100%", "100%"],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatDelay: 2,
-              }}
-            />
-          </div>
-        </motion.div>
-      ))}
-    </motion.div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </>
   );
 }

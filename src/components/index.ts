@@ -7,3 +7,4 @@ export { Footer } from "./footer";
 export { MysteryBoxesGrid } from "./mystery-boxes-grid";
 export { CasesStats } from "./cases-stats";
 export { NftInventoryGrid } from "./nft-inventory-grid";
+export { CaseOpeningModal } from "./case-opening-modal";
