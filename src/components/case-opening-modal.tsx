@@ -1,0 +1,339 @@
+"use client";
+
+import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+
+interface CaseOpeningModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  boxName: string;
+}
+
+const possibleRewards = [
+  {
+    id: 1,
+    name: "{Card Name}",
+    rarity: "Common",
+    image: "/assets/cards/silver-card.png",
+    rarityColor: "text-gray-400",
+    borderColor: "border-gray-500",
+  },
+  {
+    id: 2,
+    name: "{Card Name}",
+    rarity: "Common",
+    image: "/assets/cards/silver-card.png",
+    rarityColor: "text-gray-400",
+    borderColor: "border-gray-500",
+  },
+  {
+    id: 3,
+    name: "{Card Name}",
+    rarity: "Rare",
+    image: "/assets/cards/cyan-card.png",
+    rarityColor: "text-cyan-400",
+    borderColor: "border-cyan-500",
+  },
+  {
+    id: 4,
+    name: "{Card Name}",
+    rarity: "Common",
+    image: "/assets/cards/silver-card.png",
+    rarityColor: "text-gray-400",
+    borderColor: "border-gray-500",
+  },
+  {
+    id: 5,
+    name: "{Card Name}",
+    rarity: "Epic",
+    image: "/assets/cards/purple-card.png",
+    rarityColor: "text-purple-400",
+    borderColor: "border-purple-500",
+  },
+  {
+    id: 6,
+    name: "{Card Name}",
+    rarity: "Rare",
+    image: "/assets/cards/cyan-card.png",
+    rarityColor: "text-cyan-400",
+    borderColor: "border-cyan-500",
+  },
+  {
+    id: 7,
+    name: "{Card Name}",
+    rarity: "Legendary",
+    image: "/assets/cards/gold-card.png",
+    rarityColor: "text-yellow-400",
+    borderColor: "border-yellow-500",
+  },
+];
+
+type CaseState = "idle" | "opening" | "revealing" | "claimed";
+
+export function CaseOpeningModal({
+  isOpen,
+  onClose,
+  boxName,
+}: CaseOpeningModalProps) {
+  const [caseState, setCaseState] = useState<CaseState>("idle");
+  const [wonItem, setWonItem] = useState<(typeof possibleRewards)[0] | null>(
+    null
+  );
+  const [spinItems, setSpinItems] = useState<
+    Array<(typeof possibleRewards)[0] & { uniqueId: string }>
+  >([]);
+
+  // Generate a long list of items for the spinning animation
+  const generateSpinItems = () => {
+    const items = [];
+    const totalItems = 60;
+    const winningIndex = 50; // Position where the winning item will be
+
+    // Pick a random winning item first
+    const winningItem =
+      possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+    setWonItem(winningItem);
+
+    // Fill with random items
+    for (let i = 0; i < totalItems; i++) {
+      if (i === winningIndex) {
+        // Insert the winning item at the exact position
+        items.push({ ...winningItem, uniqueId: `winning-item-${i}` });
+      } else {
+        const randomItem =
+          possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+        items.push({ ...randomItem, uniqueId: `item-${i}` });
+      }
+    }
+
+    return items;
+  };
+
+  const handleOpenCase = () => {
+    setCaseState("opening");
+
+    // Animation completes after 5 seconds
+    setTimeout(() => {
+      setCaseState("revealing");
+    }, 5000);
+  };
+
+  const handleClaimNFT = () => {
+    setCaseState("claimed");
+  };
+
+  const handleClose = () => {
+    setCaseState("idle");
+    setWonItem(null);
+    onClose();
+  };
+
+  const handleOpenAnother = () => {
+    // Generate new items and reset to idle
+    setCaseState("idle");
+    setSpinItems(generateSpinItems());
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      // Reset to idle and generate new items when modal opens
+      setCaseState("idle");
+      setSpinItems(generateSpinItems());
+    }
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="relative w-full h-full flex flex-col">
+            {/* Close Button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+              disabled={caseState === "opening"}
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center pt-12 pb-8">
+              <motion.h2
+                className="text-3xl sm:text-4xl md:text-5xl font-audiowide text-white mb-2"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {caseState === "opening"
+                  ? "Opening Box..."
+                  : caseState === "revealing"
+                    ? "You Won!"
+                    : caseState === "claimed"
+                      ? "NFT Claimed!"
+                      : "Ready to Open?"}
+              </motion.h2>
+              <p className="text-gray-400 text-lg">{boxName}</p>
+            </div>
+
+            {/* Spinning Container */}
+            <div className="flex-1 flex items-center justify-center overflow-hidden px-4">
+              <div className="relative w-full max-w-6xl">
+                {/* Selection Indicator - Diamond shape at top */}
+                <motion.div
+                  className="absolute left-1/2 -translate-x-1/2 -top-8 z-20"
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <div className="w-8 h-8 bg-cyan-400 rotate-45 shadow-lg shadow-cyan-500/50" />
+                </motion.div>
+
+                {/* Selection Box */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-96 border-4 border-cyan-400 rounded-2xl z-10 pointer-events-none shadow-2xl shadow-cyan-500/50" />
+
+                {/* Scrolling Items */}
+                <div className="relative h-96 overflow-hidden">
+                  <motion.div
+                    className="flex gap-4 absolute"
+                    style={{ left: "50%", y: "24px" }}
+                    animate={{
+                      x:
+                        caseState === "opening" ||
+                        caseState === "revealing" ||
+                        caseState === "claimed"
+                          ? `calc(-${50 * (224 + 16)}px - ${224 / 2}px)` // Move to item 50, then center the card itself
+                          : `-0.768%`,
+                    }}
+                    transition={{
+                      duration: caseState === "opening" ? 5 : 0.5,
+                      ease:
+                        caseState === "opening"
+                          ? [0.25, 0.1, 0.25, 1]
+                          : "easeInOut",
+                    }}
+                  >
+                    {spinItems.map((item) => (
+                      <motion.div
+                        key={item.uniqueId}
+                        className={`flex-shrink-0 w-56 h-80 bg-gradient-to-b from-[#1a2838]/80 to-[#0f1729]/80 backdrop-blur-sm rounded-xl p-4 border-2 ${item.borderColor} flex flex-col items-center justify-center`}
+                        initial={{ opacity: 0.5, scale: 0.9 }}
+                        animate={{
+                          opacity: 1,
+                          scale: 1,
+                        }}
+                      >
+                        <div className="relative w-full h-48 mb-4">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <h3 className="text-white font-medium text-center mb-2">
+                          {item.name}
+                        </h3>
+                        <p
+                          className={`text-sm font-medium ${item.rarityColor}`}
+                        >
+                          {item.rarity}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+
+                {/* Gradient Overlays */}
+                <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+                <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="text-center pb-12">
+              {caseState === "idle" && (
+                <motion.button
+                  onClick={handleOpenCase}
+                  className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white text-lg font-medium rounded-xl shadow-lg shadow-cyan-500/30 transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  Open Case
+                </motion.button>
+              )}
+
+              {caseState === "revealing" && wonItem && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4"
+                >
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-2">You received:</p>
+                    <p
+                      className={`text-2xl font-audiowide ${wonItem.rarityColor}`}
+                    >
+                      {wonItem.rarity} {wonItem.name}
+                    </p>
+                  </div>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleClaimNFT}
+                      className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-cyan-500/30"
+                    >
+                      Claim NFT
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {caseState === "claimed" && wonItem && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4"
+                >
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-2">You received:</p>
+                    <p
+                      className={`text-2xl font-audiowide ${wonItem.rarityColor}`}
+                    >
+                      {wonItem.rarity} {wonItem.name}
+                    </p>
+                  </div>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={handleClose}
+                      className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={handleOpenAnother}
+                      className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-cyan-500/30"
+                    >
+                      Open Another
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

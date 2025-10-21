@@ -169,7 +169,7 @@ export function UnboxStepsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Link href="/create">
+          <Link href="/cases">
             <motion.div
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/30 cursor-pointer"
               whileHover={{

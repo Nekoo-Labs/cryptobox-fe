@@ -7,7 +7,7 @@ import { Box, Twitter, Github, MessageCircle, Mail } from "lucide-react";
 const footerLinks = {
   product: [
     { label: "Home", href: "/" },
-    { label: "Open Boxes", href: "/create" },
+    { label: "Open Boxes", href: "/cases" },
     { label: "Inventory", href: "/inventory" },
     { label: "Marketplace", href: "/marketplace" },
   ],
