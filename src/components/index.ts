@@ -6,3 +6,4 @@ export { UnboxStepsSection } from "./unbox-steps-section";
 export { Footer } from "./footer";
 export { MysteryBoxesGrid } from "./mystery-boxes-grid";
 export { CasesStats } from "./cases-stats";
+export { NftInventoryGrid } from "./nft-inventory-grid";
