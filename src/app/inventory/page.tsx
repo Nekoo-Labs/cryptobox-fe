@@ -18,12 +18,17 @@ export default function InventoryPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Link
-              href="/marketplace"
-              className="px-8 py-3 bg-transparent border-2 border-cyan-500/50 hover:border-cyan-400 text-cyan-400 hover:text-cyan-300 font-medium rounded-lg transition-all duration-300 min-w-[160px]"
+            <button
+              disabled
+              className="relative px-8 py-3 bg-transparent border-2 border-gray-500/30 text-gray-500 font-medium rounded-lg min-w-[160px] cursor-not-allowed group overflow-hidden"
             >
-              View Market
-            </Link>
+              <span className="relative z-10">View Market</span>
+              <span className="absolute z-20 backdrop-blur-md inset-0 flex items-center justify-center bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-xs text-cyan-400 font-medium">
+                  Coming Soon
+                </span>
+              </span>
+            </button>
             <Link
               href="/cases"
               className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-cyan-500/30 min-w-[160px]"

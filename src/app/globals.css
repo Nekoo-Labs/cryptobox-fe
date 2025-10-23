@@ -127,4 +127,9 @@
     );
     background-attachment: fixed;
   }
+  button,
+  a,
+  input[type="button"] {
+    @apply cursor-pointer;
+  }
 }

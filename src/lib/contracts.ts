@@ -6,8 +6,8 @@
 
 export const CONTRACTS = {
   baseSepolia: {
-    lpRewardNFT: "0xFB97175208AA849fc48c74C2196666398aB7Ea4d" as const,
-    mysteryBox: "0x58Fb0D3357563Ee7422042AC23c0F63D8724E1D9" as const,
+    lpRewardNFT: "0x233d257a8f3b395c10df89d0e2dbbb8286c1dc64" as const,
+    mysteryBox: "0xe164de6c927398bd7490647f7cefe12e5b3ce68a" as const,
   },
 } as const;
 

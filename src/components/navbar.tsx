@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Box, Menu, X } from "lucide-react";
+import { Menu, X, Shield } from "lucide-react";
 import { ConnectWalletButton } from "./connect-wallet-button";
+import { useIsContractOwner } from "@/hooks/useIsContractOwner";
 import Image from "next/image";
 
 const navLinks = [
@@ -16,6 +17,7 @@ const navLinks = [
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { isOwner } = useIsContractOwner();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -58,6 +60,20 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {isOwner && (
+              <Link
+                href="/admin"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                  pathname === "/admin"
+                    ? "text-white bg-cyan-500/10 border border-cyan-500/20"
+                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* Right Side: Connect Wallet + Mobile Menu Toggle */}
@@ -82,7 +98,7 @@ export function Navbar() {
         {/* Mobile Menu */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? "max-h-64 opacity-100 mt-4" : "max-h-0 opacity-0"
+            isMobileMenuOpen ? "max-h-96 opacity-100 mt-4" : "max-h-0 opacity-0"
           }`}
         >
           <div className="flex flex-col gap-2 py-4 border-t border-white/5">
@@ -100,6 +116,21 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {isOwner && (
+              <Link
+                href="/admin"
+                onClick={closeMobileMenu}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                  pathname === "/admin"
+                    ? "text-white bg-cyan-500/10 border border-cyan-500/20"
+                    : "text-gray-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
           </div>
         </div>
       </div>
