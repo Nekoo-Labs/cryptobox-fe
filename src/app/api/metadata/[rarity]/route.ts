@@ -65,7 +65,8 @@ export async function GET(
   { params }: { params: Promise<{ rarity: string }> }
 ) {
   const { rarity } = await params;
-  const rarityLower = rarity.toLowerCase();
+  // Remove .json extension if present (for compatibility with smart contract)
+  const rarityLower = rarity.toLowerCase().replace(/\.json$/, "");
 
   // Validate rarity
   if (!RARITY_NAMES[rarityLower]) {
