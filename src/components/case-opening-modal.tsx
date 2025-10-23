@@ -108,14 +108,28 @@ export function CaseOpeningModal({
   >([]);
 
   // Generate a long list of items for the spinning animation
-  const generateSpinItems = () => {
+  const generateSpinItems = (actualRarity?: Rarity) => {
     const items = [];
     const totalItems = 60;
     const winningIndex = 50; // Position where the winning item will be
 
-    // Pick a random winning item first
-    const winningItem =
-      possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+    // Determine winning item based on actual rarity if provided
+    let winningItem;
+    if (actualRarity !== undefined) {
+      // Use actual NFT rarity
+      winningItem = {
+        id: 0,
+        name: "LP Reward NFT",
+        rarity: RARITY_NAMES[actualRarity],
+        image: RARITY_IMAGES[actualRarity],
+        rarityColor: RARITY_COLORS[actualRarity],
+        borderColor: RARITY_BORDER_COLORS[actualRarity],
+      };
+    } else {
+      // Pick a random item for initial animation
+      winningItem =
+        possibleRewards[Math.floor(Math.random() * possibleRewards.length)];
+    }
     setWonItem(winningItem);
 
     // Fill with random items
@@ -183,13 +197,16 @@ export function CaseOpeningModal({
   // Show real NFT when minted
   useEffect(() => {
     if (mintedNFT) {
+      // Regenerate spin items with actual rarity
+      const rarity = mintedNFT.rarity;
+      setSpinItems(generateSpinItems(rarity));
+
       // Transition to revealing state if not already there
       if (caseState !== "revealing" && caseState !== "claimed") {
         setCaseState("revealing");
       }
 
       // Update wonItem with real NFT data
-      const rarity = mintedNFT.rarity;
       setWonItem({
         id: Number(mintedNFT.tokenId),
         name: "LP Reward NFT",
@@ -329,7 +346,7 @@ export function CaseOpeningModal({
                 </motion.div>
               )}
 
-              {caseState === "revealing" && wonItem && mintedNFT && (
+              {caseState === "revealing" && mintedNFT && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -338,9 +355,9 @@ export function CaseOpeningModal({
                   <div className="text-center">
                     <p className="text-gray-400 mb-2">You received:</p>
                     <p
-                      className={`text-2xl font-audiowide ${wonItem.rarityColor} mb-1`}
+                      className={`text-2xl font-audiowide ${RARITY_COLORS[mintedNFT.rarity]} mb-1`}
                     >
-                      {wonItem.rarity} {wonItem.name}
+                      {RARITY_NAMES[mintedNFT.rarity]} LP Reward NFT
                     </p>
                     <p className="text-lg text-cyan-400">
                       #{mintedNFT.tokenId.toString()}
@@ -360,7 +377,7 @@ export function CaseOpeningModal({
                 </motion.div>
               )}
 
-              {caseState === "claimed" && wonItem && mintedNFT && (
+              {caseState === "claimed" && mintedNFT && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -369,9 +386,9 @@ export function CaseOpeningModal({
                   <div className="text-center">
                     <p className="text-gray-400 mb-2">You received:</p>
                     <p
-                      className={`text-2xl font-audiowide ${wonItem.rarityColor} mb-1`}
+                      className={`text-2xl font-audiowide ${RARITY_COLORS[mintedNFT.rarity]} mb-1`}
                     >
-                      {wonItem.rarity} {wonItem.name}
+                      {RARITY_NAMES[mintedNFT.rarity]} LP Reward NFT
                     </p>
                     <p className="text-lg text-cyan-400">
                       #{mintedNFT.tokenId.toString()}
