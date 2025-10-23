@@ -3,68 +3,79 @@
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import {
+  Rarity,
+  RARITY_NAMES,
+  RARITY_COLORS,
+  RARITY_BORDER_COLORS,
+} from "@/lib/contracts";
+import { formatETH } from "@/lib/utils/format";
+import type { MintedNFT } from "@/hooks/useOpenBox";
 
 interface CaseOpeningModalProps {
   isOpen: boolean;
   onClose: () => void;
   boxName: string;
+  mintedNFT: MintedNFT | null;
+  onOpenAnother: () => void;
 }
 
 const possibleRewards = [
   {
     id: 1,
-    name: "{Card Name}",
+    name: "Bronze LP Token",
     rarity: "Common",
-    image: "/assets/cards/silver-card.png",
+    image: "/assets/lp-nft-card/common-lp-nft-card.png",
     rarityColor: "text-gray-400",
     borderColor: "border-gray-500",
   },
   {
     id: 2,
-    name: "{Card Name}",
+    name: "Silver LP Token",
     rarity: "Common",
-    image: "/assets/cards/silver-card.png",
+    image: "/assets/lp-nft-card/common-lp-nft-card.png",
     rarityColor: "text-gray-400",
     borderColor: "border-gray-500",
   },
   {
     id: 3,
-    name: "{Card Name}",
+    name: "Sapphire LP Certificate",
     rarity: "Rare",
-    image: "/assets/cards/cyan-card.png",
+    image: "/assets/lp-nft-card/rare-lp-nft-card.png",
     rarityColor: "text-cyan-400",
     borderColor: "border-cyan-500",
   },
   {
     id: 4,
-    name: "{Card Name}",
+    name: "Steel LP Token",
     rarity: "Common",
-    image: "/assets/cards/silver-card.png",
+    image: "/assets/lp-nft-card/common-lp-nft-card.png",
     rarityColor: "text-gray-400",
     borderColor: "border-gray-500",
   },
   {
     id: 5,
-    name: "{Card Name}",
+    name: "Amethyst LP Vault",
     rarity: "Epic",
-    image: "/assets/cards/purple-card.png",
+    image: "/assets/lp-nft-card/epic-lp-nft-card.png",
     rarityColor: "text-purple-400",
     borderColor: "border-purple-500",
   },
   {
     id: 6,
-    name: "{Card Name}",
+    name: "Diamond LP Certificate",
     rarity: "Rare",
-    image: "/assets/cards/cyan-card.png",
+    image: "/assets/lp-nft-card/rare-lp-nft-card.png",
     rarityColor: "text-cyan-400",
     borderColor: "border-cyan-500",
   },
   {
     id: 7,
-    name: "{Card Name}",
+    name: "Platinum LP Vault",
     rarity: "Legendary",
-    image: "/assets/cards/gold-card.png",
+    image: "/assets/lp-nft-card/legendary-lp-nft-card.png",
     rarityColor: "text-yellow-400",
     borderColor: "border-yellow-500",
   },
@@ -72,11 +83,22 @@ const possibleRewards = [
 
 type CaseState = "idle" | "opening" | "revealing" | "claimed";
 
+// Rarity to card image mapping
+const RARITY_IMAGES: Record<Rarity, string> = {
+  [Rarity.Common]: "/assets/lp-nft-card/common-lp-nft-card.png",
+  [Rarity.Rare]: "/assets/lp-nft-card/rare-lp-nft-card.png",
+  [Rarity.Epic]: "/assets/lp-nft-card/epic-lp-nft-card.png",
+  [Rarity.Legendary]: "/assets/lp-nft-card/legendary-lp-nft-card.png",
+};
+
 export function CaseOpeningModal({
   isOpen,
   onClose,
   boxName,
+  mintedNFT,
+  onOpenAnother,
 }: CaseOpeningModalProps) {
+  const router = useRouter();
   const [caseState, setCaseState] = useState<CaseState>("idle");
   const [wonItem, setWonItem] = useState<(typeof possibleRewards)[0] | null>(
     null
@@ -120,8 +142,11 @@ export function CaseOpeningModal({
     }, 5000);
   };
 
-  const handleClaimNFT = () => {
-    setCaseState("claimed");
+  const handleClaimNFT = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Navigate to inventory to see the NFT
+    router.push("/inventory");
+    handleClose();
   };
 
   const handleClose = () => {
@@ -130,10 +155,10 @@ export function CaseOpeningModal({
     onClose();
   };
 
-  const handleOpenAnother = () => {
-    // Generate new items and reset to idle
-    setCaseState("idle");
-    setSpinItems(generateSpinItems());
+  const handleOpenAnotherBox = () => {
+    // Close modal and trigger parent to open another box
+    handleClose();
+    onOpenAnother();
   };
 
   useEffect(() => {
@@ -143,6 +168,38 @@ export function CaseOpeningModal({
       setSpinItems(generateSpinItems());
     }
   }, [isOpen]);
+
+  // Auto-start opening animation when modal opens (only if NFT not yet revealed)
+  useEffect(() => {
+    if (isOpen && caseState === "idle" && !mintedNFT) {
+      // Small delay before starting animation
+      const timer = setTimeout(() => {
+        handleOpenCase();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, caseState, mintedNFT]);
+
+  // Show real NFT when minted
+  useEffect(() => {
+    if (mintedNFT) {
+      // Transition to revealing state if not already there
+      if (caseState !== "revealing" && caseState !== "claimed") {
+        setCaseState("revealing");
+      }
+
+      // Update wonItem with real NFT data
+      const rarity = mintedNFT.rarity;
+      setWonItem({
+        id: Number(mintedNFT.tokenId),
+        name: "LP Reward NFT",
+        rarity: RARITY_NAMES[rarity],
+        image: RARITY_IMAGES[rarity],
+        rarityColor: RARITY_COLORS[rarity],
+        borderColor: RARITY_BORDER_COLORS[rarity],
+      });
+    }
+  }, [mintedNFT, caseState]);
 
   return (
     <AnimatePresence>
@@ -263,19 +320,16 @@ export function CaseOpeningModal({
             {/* Action Button */}
             <div className="text-center pb-12">
               {caseState === "idle" && (
-                <motion.button
-                  onClick={handleOpenCase}
-                  className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white text-lg font-medium rounded-xl shadow-lg shadow-cyan-500/30 transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  className="text-gray-400"
                 >
-                  Open Case
-                </motion.button>
+                  Opening box...
+                </motion.div>
               )}
 
-              {caseState === "revealing" && wonItem && (
+              {caseState === "revealing" && wonItem && mintedNFT && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -284,9 +338,15 @@ export function CaseOpeningModal({
                   <div className="text-center">
                     <p className="text-gray-400 mb-2">You received:</p>
                     <p
-                      className={`text-2xl font-audiowide ${wonItem.rarityColor}`}
+                      className={`text-2xl font-audiowide ${wonItem.rarityColor} mb-1`}
                     >
                       {wonItem.rarity} {wonItem.name}
+                    </p>
+                    <p className="text-lg text-cyan-400">
+                      #{mintedNFT.tokenId.toString()}
+                    </p>
+                    <p className="text-xl font-audiowide bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent mt-2">
+                      {formatETH(mintedNFT.value, 3)} ETH
                     </p>
                   </div>
                   <div className="flex gap-4 justify-center">
@@ -294,13 +354,13 @@ export function CaseOpeningModal({
                       onClick={handleClaimNFT}
                       className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-cyan-500/30"
                     >
-                      Claim NFT
+                      View in Inventory
                     </button>
                   </div>
                 </motion.div>
               )}
 
-              {caseState === "claimed" && wonItem && (
+              {caseState === "claimed" && wonItem && mintedNFT && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -309,9 +369,15 @@ export function CaseOpeningModal({
                   <div className="text-center">
                     <p className="text-gray-400 mb-2">You received:</p>
                     <p
-                      className={`text-2xl font-audiowide ${wonItem.rarityColor}`}
+                      className={`text-2xl font-audiowide ${wonItem.rarityColor} mb-1`}
                     >
                       {wonItem.rarity} {wonItem.name}
+                    </p>
+                    <p className="text-lg text-cyan-400">
+                      #{mintedNFT.tokenId.toString()}
+                    </p>
+                    <p className="text-xl font-audiowide bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent mt-2">
+                      {formatETH(mintedNFT.value, 3)} ETH
                     </p>
                   </div>
                   <div className="flex gap-4 justify-center">
@@ -322,7 +388,7 @@ export function CaseOpeningModal({
                       Close
                     </button>
                     <button
-                      onClick={handleOpenAnother}
+                      onClick={handleOpenAnotherBox}
                       className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-cyan-500/30"
                     >
                       Open Another

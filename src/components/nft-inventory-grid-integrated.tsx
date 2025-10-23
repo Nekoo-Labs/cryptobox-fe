@@ -35,10 +35,10 @@ const cardVariants = {
 
 // Rarity to card image mapping
 const RARITY_IMAGES: Record<Rarity, string> = {
-  [Rarity.Common]: "/assets/cards/silver-card.png",
-  [Rarity.Rare]: "/assets/cards/cyan-card.png",
-  [Rarity.Epic]: "/assets/cards/purple-card.png",
-  [Rarity.Legendary]: "/assets/cards/gold-card.png",
+  [Rarity.Common]: "/assets/lp-nft-card/common-lp-nft-card.png",
+  [Rarity.Rare]: "/assets/lp-nft-card/rare-lp-nft-card.png",
+  [Rarity.Epic]: "/assets/lp-nft-card/epic-lp-nft-card.png",
+  [Rarity.Legendary]: "/assets/lp-nft-card/legendary-lp-nft-card.png",
 };
 
 export function NftInventoryGridIntegrated() {
@@ -77,7 +77,7 @@ export function NftInventoryGridIntegrated() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-400 text-lg mb-4">
-          You don't have any NFTs yet
+          You don&apos;t have any NFTs yet
         </p>
         <p className="text-gray-500">
           Open a mystery box to get your first NFT!

@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { CaseOpeningModal } from "./case-opening-modal";
 import { useOpenBox, useBoxConfig } from "@/hooks";
@@ -69,31 +69,57 @@ export function MysteryBoxesGridIntegrated() {
     (typeof mysteryBoxes)[0] | null
   >(null);
 
-  const { openBox, isPending, isConfirming, isSuccess, error } = useOpenBox();
+  const { openBox, isPending, isConfirming, isSuccess, mintedNFT } =
+    useOpenBox();
 
-  const handleOpenBox = (box: (typeof mysteryBoxes)[0]) => {
+  const handleOpenBox = (box: (typeof mysteryBoxes)[0], price: bigint) => {
     if (!isConnected) {
       toast.error("Please connect your wallet first");
       return;
     }
 
+    // Prevent opening if there's already a pending transaction
+    if (isPending || isConfirming) {
+      toast.error("Please wait for the current transaction to complete");
+      return;
+    }
+
     setSelectedBoxData(box);
-    
-    // Open the box on-chain
+
+    // Open the box on-chain with the correct price
     try {
-      openBox(box.boxType);
-      toast.success("Transaction submitted! Opening box...");
-      setIsModalOpen(true);
+      openBox(box.boxType, price);
+      toast.success("Transaction submitted! Waiting for confirmation...");
     } catch (err) {
       console.error("Error opening box:", err);
       toast.error("Failed to open box. Please try again.");
     }
   };
 
-  // Show success toast when transaction confirms
-  if (isSuccess && !isModalOpen) {
-    toast.success("Box opened successfully! Check your inventory.");
-  }
+  // Open modal only when transaction succeeds
+  useEffect(() => {
+    if (isSuccess && !isModalOpen) {
+      setIsModalOpen(true);
+      toast.success("Box opened successfully!");
+    }
+  }, [isSuccess, isModalOpen]);
+
+  // Handle opening another box
+  const handleOpenAnother = () => {
+    // Keep the same box type and try to open again
+    if (selectedBoxData) {
+      setIsModalOpen(false);
+      // Small delay to allow modal to close
+      setTimeout(() => {
+        const boxCard = document.querySelector(
+          `[data-box-id="${selectedBoxData.id}"]`
+        );
+        if (boxCard) {
+          (boxCard as HTMLElement).click();
+        }
+      }, 300);
+    }
+  };
 
   return (
     <>
@@ -101,8 +127,8 @@ export function MysteryBoxesGridIntegrated() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         boxName={selectedBoxData?.name || ""}
-        isLoading={isPending || isConfirming}
-        isSuccess={isSuccess}
+        mintedNFT={mintedNFT}
+        onOpenAnother={handleOpenAnother}
       />
       <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"
@@ -116,7 +142,7 @@ export function MysteryBoxesGridIntegrated() {
             box={box}
             isSelected={selectedBox === box.id}
             onSelect={() => setSelectedBox(box.id)}
-            onOpen={() => handleOpenBox(box)}
+            onOpen={handleOpenBox}
             isOpening={isPending || isConfirming}
             isConnected={isConnected}
           />
@@ -130,7 +156,7 @@ interface BoxCardProps {
   box: (typeof mysteryBoxes)[0];
   isSelected: boolean;
   onSelect: () => void;
-  onOpen: () => void;
+  onOpen: (box: (typeof mysteryBoxes)[0], price: bigint) => void;
   isOpening: boolean;
   isConnected: boolean;
 }
@@ -144,11 +170,11 @@ function BoxCard({
   isConnected,
 }: BoxCardProps) {
   const { config, isLoading } = useBoxConfig(box.boxType);
-  
+
   const price = config?.price
     ? `ETH ${formatETH(config.price, 2)}`
     : `ETH ${BOX_PRICES[box.boxType]}`;
-  
+
   const isActive = config?.isActive ?? true;
   const totalOpened = config?.totalOpened ? Number(config.totalOpened) : 0;
 
@@ -159,6 +185,7 @@ function BoxCard({
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={onSelect}
       className="cursor-pointer"
+      data-box-id={box.id}
     >
       <div
         className={`relative group bg-gradient-to-b from-[#1a1f3a]/80 to-[#0f1729]/80 backdrop-blur-sm rounded-2xl p-6 border-2 ${box.borderColor} ${box.hoverBorder} transition-all duration-300 shadow-lg hover:shadow-2xl overflow-hidden ${
@@ -219,7 +246,7 @@ function BoxCard({
           <h3 className="text-lg sm:text-xl font-audiowide text-white mb-3">
             {box.name}
           </h3>
-          
+
           {isLoading ? (
             <div className="h-8 bg-gray-700/50 animate-pulse rounded mb-4" />
           ) : (
@@ -239,16 +266,22 @@ function BoxCard({
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
-              onOpen();
+              if (config?.price) {
+                onOpen(box, config.price);
+              }
             }}
-            disabled={!isActive || isOpening || !isConnected}
+            disabled={!isActive || isOpening || !isConnected || !config?.price}
             className={`w-full py-3 ${
-              !isActive || !isConnected
+              !isActive || !isConnected || !config?.price
                 ? "bg-gray-600 cursor-not-allowed"
                 : "bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700"
             } text-white font-medium rounded-lg transition-all duration-300 shadow-lg shadow-cyan-500/30 disabled:opacity-50`}
-            whileHover={isActive && isConnected ? { scale: 1.05 } : {}}
-            whileTap={isActive && isConnected ? { scale: 0.98 } : {}}
+            whileHover={
+              isActive && isConnected && config?.price ? { scale: 1.05 } : {}
+            }
+            whileTap={
+              isActive && isConnected && config?.price ? { scale: 0.98 } : {}
+            }
           >
             {!isConnected
               ? "Connect Wallet"
@@ -256,7 +289,9 @@ function BoxCard({
                 ? "Opening..."
                 : !isActive
                   ? "Not Available"
-                  : "Open Box"}
+                  : !config?.price
+                    ? "Loading..."
+                    : "Open Box"}
           </motion.button>
         </div>
 

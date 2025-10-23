@@ -1,6 +1,6 @@
 /**
  * Smart Contract Addresses and Configuration
- * 
+ *
  * Deployed on Base Sepolia Testnet
  */
 
@@ -32,11 +32,12 @@ export enum Rarity {
   Legendary = 3,
 }
 
-// Box prices in ETH
+// Box prices in ETH (testnet pricing)
+// NOTE: These are fallback values. Actual prices are fetched from contract via useBoxConfig
 export const BOX_PRICES = {
-  [BoxType.Rare]: "3.2",
-  [BoxType.Epic]: "3.2",
-  [BoxType.Legendary]: "3.2",
+  [BoxType.Rare]: "0.001",
+  [BoxType.Epic]: "0.002",
+  [BoxType.Legendary]: "0.005",
 } as const;
 
 // Rarity display names

@@ -12,23 +12,30 @@ export interface ContractStats {
 
 /**
  * Hook to get contract statistics
- * 
+ *
  * @example
  * const { stats, isLoading } = useContractStats();
  */
 export function useContractStats() {
-  const { data: stats, isLoading, refetch } = useReadContract({
+  const {
+    data: stats,
+    isLoading,
+    refetch,
+  } = useReadContract({
     address: CONTRACTS.baseSepolia.mysteryBox,
     abi: MysteryBoxABI,
     functionName: "getStats",
   });
 
+  // getStats returns [totalOpened: bigint, totalValue: bigint, contractBalance: bigint]
+  const typedStats = stats as readonly [bigint, bigint, bigint] | undefined;
+
   return {
-    stats: stats
+    stats: typedStats
       ? ({
-          totalBoxesOpened: stats[0],
-          totalValueDistributed: stats[1],
-          contractBalance: stats[2],
+          totalBoxesOpened: typedStats[0],
+          totalValueDistributed: typedStats[1],
+          contractBalance: typedStats[2],
         } as ContractStats)
       : undefined,
     isLoading,
